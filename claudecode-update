@@ -1,0 +1,57 @@
+#!/bin/bash
+# Auto-update ClaudeCode-Better settings pack from GitHub
+# Checks latest commit, downloads new zips if newer
+
+REPO="Felix-Bechtel/ClaudeCode-Better"
+LOCAL_DIR="$HOME/Claude/Claude Code Settings/Claude Code Zips"
+CACHE_FILE="${TMPDIR:-/tmp}/claudecode-update-last"
+GREEN='\033[32m'
+YEL='\033[33m'
+DIM='\033[2m'
+BOLD='\033[1m'
+R='\033[0m'
+
+# Get latest commit SHA from GitHub
+REMOTE_SHA=$(gh api "repos/$REPO/commits/main" --jq '.sha' 2>/dev/null | head -c 7)
+if [ -z "$REMOTE_SHA" ]; then
+  printf "  ${DIM}Update check: couldn't reach GitHub${R}\n"
+  exit 0
+fi
+
+# Compare with cached SHA
+LOCAL_SHA=""
+[ -f "$CACHE_FILE" ] && LOCAL_SHA=$(cat "$CACHE_FILE")
+
+if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+  printf "  ${GREEN}✓${R} ClaudeCode-Better is up to date ${DIM}($REMOTE_SHA)${R}\n"
+  exit 0
+fi
+
+printf "  ${YEL}⟳${R} ${BOLD}Update available!${R} ${DIM}$LOCAL_SHA → $REMOTE_SHA${R}\n"
+printf "  ${DIM}Downloading latest zips...${R}\n"
+
+# Download both zips
+mkdir -p "$LOCAL_DIR"
+gh api "repos/$REPO/contents/Claude Code Zips/ClaudeCode.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/ClaudeCode.zip.tmp"
+gh api "repos/$REPO/contents/Claude Code Zips/buddy-system.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/buddy-system.zip.tmp"
+
+# Only replace if downloads succeeded
+if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.tmp" ]; then
+  mv "$LOCAL_DIR/ClaudeCode.zip.tmp" "$LOCAL_DIR/ClaudeCode.zip"
+  mv "$LOCAL_DIR/buddy-system.zip.tmp" "$LOCAL_DIR/buddy-system.zip"
+
+  # Extract and apply ClaudeCode settings
+  TMPEXT=$(mktemp -d)
+  unzip -qo "$LOCAL_DIR/ClaudeCode.zip" -d "$TMPEXT"
+  # Update commands
+  if [ -d "$TMPEXT/ClaudeCode/commands" ]; then
+    cp "$TMPEXT/ClaudeCode/commands/"*.md "$HOME/.claude/commands/" 2>/dev/null
+  fi
+  rm -rf "$TMPEXT"
+
+  echo "$REMOTE_SHA" > "$CACHE_FILE"
+  printf "  ${GREEN}✓${R} ${BOLD}Updated!${R} ClaudeCode.zip + buddy-system.zip + commands synced\n"
+else
+  rm -f "$LOCAL_DIR/ClaudeCode.zip.tmp" "$LOCAL_DIR/buddy-system.zip.tmp"
+  printf "  ${YEL}⚠${R} Download failed, keeping current version\n"
+fi

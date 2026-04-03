@@ -52,9 +52,16 @@ Every new conversation prompts you sequentially:
 
 - **Ralph Loop** (`ralph-loop@claude-plugins-official`) — autonomous dev loops, iterates until task is done
 
-### Shell Command
+### Shell Commands
 
-Run `! status` in Claude Code for a quick terminal status readout (model, plugins, commands, keep-awake).
+| Command | Description |
+|---------|-------------|
+| `! status` | Quick terminal status readout (model, plugins, commands, keep-awake) |
+| `! claudecode-update` | Check for and install updates from ClaudeCode-Better GitHub |
+
+### Auto-Update
+
+Every new Claude Code session automatically runs `claudecode-update` to check GitHub for the latest version. If an update is available, it downloads new zips and syncs commands. Requires `gh` CLI.
 
 ---
 
@@ -75,12 +82,12 @@ Companion collection game for Claude Code. Hatch eggs, collect all 18 species, c
 | `! buddy stats` | Show active buddy with ASCII art, stat bars, and egg status |
 | `! buddy index` | Collection grid — discovered and undiscovered species |
 | `! buddy log` | Full view: collection + catalogue + customization reference |
-| `! buddy catalogue` | Browse all 18 species, eyes, hats, and rarities |
+| `! buddy catalogue` | Browse all 18 species grouped by rarity with hatch odds |
 | `! buddy equip` | List your buddies and which one is equipped |
 | `! buddy equip <name>` | Switch active buddy |
 | `! buddy equip eyes <style>` | Change eyes (dot/sparkle/cross/circle/at/degree) |
 | `! buddy equip hat <type>` | Change hat (crown/tophat/propeller/halo/wizard/beanie/tinyduck/none) |
-| `! buddy equip name <name>` | Rename active buddy |
+| `! buddy rename <name>` | Rename active buddy |
 | `! buddy claim` | Pick up dropped eggs |
 | `! buddy hatch` | Hatch an egg into a new random buddy |
 | `! buddy switch <name>` | Switch active buddy (alias for equip) |
