@@ -90,7 +90,7 @@ A CLI pet collection game that runs alongside Claude Code.
 | `buddy claim` | Pick up dropped eggs |
 | `buddy hatch` | Hatch a claimed egg into a new buddy |
 | `buddy rename <name>` | Rename active buddy (costs 1 rename point) |
-| `buddy slaughter <name>` | Kill any buddy aged 2+ years (+1 rename point, animated) |
+| `buddy slaughter <name>` | Kill any buddy aged 2+ years (+1 rename point, animated). Last buddy → rainbow `/buddy` |
 | `buddy switch <name>` | Switch active buddy |
 | `buddy release <name>` | Release a buddy from collection |
 | `buddy help` | Show command reference |
