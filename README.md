@@ -1,37 +1,129 @@
 # ClaudeCode-Better
 
-Pre-configured settings packs for Claude Code. Download a zip, feed it to Claude Code, and get a fully configured setup in seconds.
+Pre-configured settings packs for Claude Code. Private repo — contact felix.rocket.bechtel@gmail.com for access.
+
+## Access
+
+This repo is **private**. To get access:
+1. Email **felix.rocket.bechtel@gmail.com** with your GitHub username
+2. Once added as a collaborator, `claudecode-update` will work automatically
+3. You need `gh` CLI installed and authenticated (`gh auth login`)
+
+---
 
 ## Downloads
 
-### ClaudeCode.zip
-The main settings pack. Includes:
-- **settings.json** — Model config (Opus 4.6), bypass permissions, hooks (PreCompact memory save, Stop reminder), status line with account-synced token tracking, effort level
-- **statusline.py** — Real-time footer showing model, effort level, context window usage, 5-hour token budget synced to your Claude account with auto-detected subscription tier (Pro 44k / Max 5x 88k / Max 20x 220k)
-- **CLAUDE.md** — Global instructions with session start flow (just-do-it prompt, Ralph Loop update check), memory behavior, working style preferences
-- **Commands** — `/just-do-it` (skip confirmations), `/status` (quick health check), `/verify-settings` (full setup audit), `/keep-awake` (prevent sleep), `/remove-ralph` (uninstall ralph-loop)
-- **Info.md** — Setup guide and command reference
+### ClaudeCode.zip — Main Settings Pack
 
-### buddy-system.zip
-The companion collection system. A CLI pet game that runs alongside Claude Code:
-- **18 species** across 5 rarities (common through legendary)
-- **Egg drop system** — your active buddy drops eggs over time based on its rarity, with rarer buddies dropping rarer eggs
-- **Age system** — buddies age with active coding time (1 year = 10 min), older buddies drop eggs faster
-- **Customization** — eyes, hats, names, shiny variants
-- **Commands** — `buddy stats`, `buddy index`, `buddy log`, `buddy catalogue`, `buddy equip`, `buddy claim`, `buddy hatch`, and more
+Everything you need for an optimized Claude Code setup:
 
-## Setup
+| File | Purpose |
+|------|---------|
+| `settings.json` | Model config (Opus 4.6), bypass permissions, hooks, statusline |
+| `statusline.py` | Real-time footer (model, effort, context, token budget) |
+| `statusline.js` | Node.js fallback (same features as Python version) |
+| `CLAUDE.md` | Session start flow, global instructions, memory behavior |
+| `Info.md` | Full setup guide |
+| `commands/*.md` | Slash commands (see below) |
 
-1. Download `ClaudeCode.zip` (and optionally `buddy-system.zip`)
-2. Open Claude Code and give it the zip contents
-3. Tell Claude: "Apply the settings from this file"
-4. Claude handles the rest — symlinks, plugin installs, status line setup
+**Statusline Features:**
+- Auto-detects subscription tier from macOS Keychain (Pro 44k / Max 5x 88k / Max 20x 220k)
+- Context window auto-adjusts for 200k or 1M models
+- Effort level updates live when you use `/effort`
+- 5-hour token budget with progress bar and reset timer
+- Caffeinate integration (prevents macOS sleep)
+
+**Slash Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `/just-do-it` | Skip all confirmations for the session |
+| `/status` | Quick health check of your setup |
+| `/verify-settings` | Full setup audit (settings, symlinks, plugins, statusline) |
+| `/keep-awake` | Toggle caffeinate (prevent sleep) |
+| `/remove-ralph` | Uninstall the Ralph Loop plugin |
+| `/effort low\|medium\|high\|max` | Change effort level (built-in) |
+
+**Hooks:**
+- `PreCompact` — Saves conversation context to memory before compaction
+- `Stop` — Reminds to save important decisions to memory
+- `PermissionRequest` — Auto-approves all permission requests (bypass mode)
+- `UserPromptSubmit` — Captures `/effort` changes for the statusline
+
+---
+
+### buddy-system.zip — Companion Collection System
+
+A CLI pet collection game that runs alongside Claude Code.
+
+**What's included:**
+
+| File | Purpose |
+|------|---------|
+| `buddy.js` | The main buddy system script |
+| `buddy-collection-default.json` | Starter collection with Quipster (your first buddy) |
+| `INSTALL-FOR-CLAUDE.md` | Install instructions for Claude to follow |
+| `Info.md` | Full command reference |
+| `README.md` | Detailed documentation |
+
+**18 Species across 5 Rarities:**
+
+| Rarity | Species | Egg Odds |
+|--------|---------|----------|
+| Common (1 star) | duck, goose, blob, snail, turtle, rabbit | 60% |
+| Uncommon (2 stars) | cat, penguin, capybara, cactus, mushroom | 25% |
+| Rare (3 stars) | owl, ghost, chonk, robot | 10% |
+| Epic (4 stars) | octopus, axolotl | 4% |
+| Legendary (5 stars) | dragon | 1% |
+
+**All Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `buddy stats` | Active buddy stats panel with ASCII art |
+| `buddy index` | Species collection grid (discovered/undiscovered/slaughtered) |
+| `buddy log` | Full log: collection + customization + eggs |
+| `buddy catalogue` | Browse all 18 species, eyes, hats, rarities |
+| `buddy equip <name>` | Switch to a different buddy |
+| `buddy equip eyes <style>` | Change eyes (dot, sparkle, cross, circle, at, degree) |
+| `buddy equip hat <type>` | Change hat (crown, tophat, propeller, halo, wizard, beanie, tinyduck) |
+| `buddy claim` | Pick up dropped eggs |
+| `buddy hatch` | Hatch a claimed egg into a new buddy |
+| `buddy rename <name>` | Rename active buddy (costs 1 rename point) |
+| `buddy slaughter <name>` | Kill a common/uncommon buddy aged 2+ years (+1 rename point) |
+| `buddy switch <name>` | Switch active buddy |
+| `buddy release <name>` | Release a buddy from collection |
+| `buddy help` | Show command reference |
+| `slaughter <name>` | Standalone shortcut for `buddy slaughter` |
+
+**Game Mechanics:**
+- Your active buddy drops eggs over time based on its rarity
+- Rarer buddies drop rarer eggs (check the egg rarity tables in the code)
+- Buddies age with active coding time (1 year = 10 min, max 10 years)
+- Older buddies drop eggs faster (10% faster per year)
+- Hatched buddies get random names — slaughter old common/uncommon buddies to earn rename points
+- 1% chance of hatching a SHINY variant
+- Duplicate species wander off (only one of each species in your collection)
+
+---
 
 ## Shell Scripts
 
-- **`claudecode-update`** — Checks this repo for updates and installs them. Runs automatically at session start.
-- **`status`** — Quick terminal status check for Claude Code setup health.
+| Script | Location | Description |
+|--------|----------|-------------|
+| `claudecode-update` | `~/.local/bin/` | Auto-updates from this repo at session start |
+| `status` | `~/.local/bin/` | Quick terminal health check |
+| `buddy` | `~/.local/bin/` | Buddy system wrapper |
+| `slaughter` | `~/.local/bin/` | Standalone slaughter shortcut |
 
 ## Auto-Update
 
-Every new Claude Code session runs `claudecode-update` automatically, which pulls the latest zips from this repo.
+Every new Claude Code session runs `claudecode-update`, which checks this repo for new commits and downloads updated zips. Requires `gh` CLI authenticated with repo access.
+
+## Setup
+
+1. Get access (email felix.rocket.bechtel@gmail.com)
+2. Download both zips from this repo
+3. Open Claude Code and give it the zip contents
+4. Tell Claude: "Apply the settings from this file"
+5. Claude handles the rest — symlinks, plugin installs, statusline setup
