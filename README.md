@@ -19,7 +19,7 @@ Everything you need for an optimized Claude Code setup:
 
 | File | Purpose |
 |------|---------|
-| `settings.json` | Model config (Opus 4.6), bypass permissions, hooks, statusline |
+| `settings.json` | Model config (Opus 4.6), bypass permissions, hooks, statusline (auto-detects tier) |
 | `statusline.py` | Real-time footer (model, effort, context, token budget) |
 | `statusline.js` | Node.js fallback (same features as Python version) |
 | `CLAUDE.md` | Session start flow, global instructions, memory behavior |
@@ -27,7 +27,7 @@ Everything you need for an optimized Claude Code setup:
 | `commands/*.md` | Slash commands (see below) |
 
 **Statusline Features:**
-- Auto-detects subscription tier from macOS Keychain (Pro 44k / Max 5x 88k / Max 20x 220k)
+- Auto-detects subscription tier from macOS Keychain — no hardcoded budget (Pro 44k / Max 5x 88k / Max 20x 220k)
 - Context window auto-adjusts for 200k or 1M models
 - Effort level updates live when you use `/effort`
 - 5-hour token budget with progress bar and reset timer
@@ -90,7 +90,7 @@ A CLI pet collection game that runs alongside Claude Code.
 | `buddy claim` | Pick up dropped eggs |
 | `buddy hatch` | Hatch a claimed egg into a new buddy |
 | `buddy rename <name>` | Rename active buddy (costs 1 rename point) |
-| `buddy slaughter <name>` | Kill a common/uncommon buddy aged 2+ years (+1 rename point) |
+| `buddy slaughter <name>` | Kill any buddy aged 2+ years (+1 rename point, animated) |
 | `buddy switch <name>` | Switch active buddy |
 | `buddy release <name>` | Release a buddy from collection |
 | `buddy help` | Show command reference |
@@ -101,7 +101,7 @@ A CLI pet collection game that runs alongside Claude Code.
 - Rarer buddies drop rarer eggs (check the egg rarity tables in the code)
 - Buddies age with active coding time (1 year = 10 min, max 10 years)
 - Older buddies drop eggs faster (10% faster per year)
-- Hatched buddies get random names — slaughter old common/uncommon buddies to earn rename points
+- Hatched buddies get random names — slaughter old buddies (any rarity) to earn rename points
 - 1% chance of hatching a SHINY variant
 - Duplicate species wander off (only one of each species in your collection)
 
