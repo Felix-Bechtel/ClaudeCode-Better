@@ -43,14 +43,35 @@ if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.t
   # Extract and apply ClaudeCode settings
   TMPEXT=$(mktemp -d)
   unzip -qo "$LOCAL_DIR/ClaudeCode.zip" -d "$TMPEXT"
-  # Update commands
-  if [ -d "$TMPEXT/ClaudeCode/commands" ]; then
-    cp "$TMPEXT/ClaudeCode/commands/"*.md "$HOME/.claude/commands/" 2>/dev/null
+  # Update commands (zip root contains commands/ directly, no subdirectory)
+  if [ -d "$TMPEXT/commands" ]; then
+    mkdir -p "$HOME/.claude/commands"
+    cp "$TMPEXT/commands/"*.md "$HOME/.claude/commands/" 2>/dev/null
   fi
   rm -rf "$TMPEXT"
 
+  # Extract and apply buddy.js if present
+  BTMP=$(mktemp -d)
+  unzip -qo "$LOCAL_DIR/buddy-system.zip" -d "$BTMP" 2>/dev/null
+  if [ -f "$BTMP/buddy.js" ]; then
+    BUDDY_DEST="$HOME/Claude/buddy-system"
+    mkdir -p "$BUDDY_DEST"
+    cp "$BTMP/buddy.js" "$BUDDY_DEST/buddy.js"
+    # Install default collection only if user has none
+    if [ ! -f "$HOME/.claude/buddy-collection.json" ] && [ -f "$BTMP/buddy-collection-default.json" ]; then
+      cp "$BTMP/buddy-collection-default.json" "$HOME/.claude/buddy-collection.json"
+    fi
+  fi
+  rm -rf "$BTMP"
+
   echo "$REMOTE_SHA" > "$CACHE_FILE"
   printf "  ${GREEN}✓${R} ${BOLD}Updated!${R} ClaudeCode.zip + buddy-system.zip + commands synced\n"
+
+  # Show buddy stats after update so user sees their collection is intact
+  if command -v buddy &>/dev/null; then
+    printf "  ${DIM}Buddy collection:${R}\n"
+    buddy stats 2>/dev/null
+  fi
 else
   rm -f "$LOCAL_DIR/ClaudeCode.zip.tmp" "$LOCAL_DIR/buddy-system.zip.tmp"
   printf "  ${YEL}⚠${R} Download failed, keeping current version\n"
