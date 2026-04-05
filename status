@@ -1,6 +1,9 @@
 #!/bin/bash
 # Claude Code Status — quick setup overview
 
+# Invalidate statusline token cache so footer re-fetches fresh data from API
+rm -f "${TMPDIR:-/tmp}/token-tracker-usage.json" 2>/dev/null
+
 printf "\033[1m=== Claude Code Status ===\033[0m\n\n"
 
 # Model & permissions
