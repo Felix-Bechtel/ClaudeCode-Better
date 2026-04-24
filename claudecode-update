@@ -1,15 +1,30 @@
 #!/bin/bash
 # Auto-update ClaudeCode-Better settings pack from GitHub
-# Checks latest commit, downloads new zips if newer
+# Default behavior: check only + mark a "pending update" flag, so Claude can
+# prompt the user at session start before installing.
+#
+# Flags:
+#   (no flag)  — check only, print status, write pending marker if newer
+#   --yes      — user said yes: install now
+#   --auto     — install without any gating (legacy behavior)
+#   --check    — alias for no-flag
 
 REPO="Felix-Bechtel/ClaudeCode-Better"
 LOCAL_DIR="$HOME/Claude/Claude Code Settings/Claude Code Zips"
 CACHE_FILE="${TMPDIR:-/tmp}/claudecode-update-last"
+PENDING_FILE="${TMPDIR:-/tmp}/claudecode-update-pending"
 GREEN='\033[32m'
 YEL='\033[33m'
 DIM='\033[2m'
 BOLD='\033[1m'
 R='\033[0m'
+
+MODE="prompt"
+case "$1" in
+  --auto)  MODE="auto" ;;
+  --yes)   MODE="yes" ;;
+  --check) MODE="prompt" ;;
+esac
 
 # Get latest commit SHA from GitHub
 REMOTE_SHA=$(gh api "repos/$REPO/commits/main" --jq '.sha' 2>/dev/null | head -c 7)
@@ -18,56 +33,70 @@ if [ -z "$REMOTE_SHA" ]; then
   exit 0
 fi
 
-# Compare with cached SHA
 LOCAL_SHA=""
 [ -f "$CACHE_FILE" ] && LOCAL_SHA=$(cat "$CACHE_FILE")
 
 if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
   printf "  ${GREEN}✓${R} ClaudeCode-Better is up to date ${DIM}($REMOTE_SHA)${R}\n"
+  rm -f "$PENDING_FILE"
   exit 0
 fi
 
-printf "  ${YEL}⟳${R} ${BOLD}Update available!${R} ${DIM}$LOCAL_SHA → $REMOTE_SHA${R}\n"
-printf "  ${DIM}Downloading latest zips...${R}\n"
+printf "  ${YEL}⟳${R} ${BOLD}ClaudeCode-Better update available${R} ${DIM}${LOCAL_SHA:-none} → $REMOTE_SHA${R}\n"
+echo "$REMOTE_SHA" > "$PENDING_FILE"
 
-# Download both zips
+if [ "$MODE" = "prompt" ]; then
+  printf "  ${DIM}Claude will ask if you want to install. Or run: claudecode-update --yes${R}\n"
+  exit 0
+fi
+
+# MODE is "auto" or "yes" — proceed with install.
+printf "  ${DIM}Downloading latest zips...${R}\n"
 mkdir -p "$LOCAL_DIR"
 gh api "repos/$REPO/contents/Claude Code Zips/ClaudeCode.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/ClaudeCode.zip.tmp"
 gh api "repos/$REPO/contents/Claude Code Zips/buddy-system.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/buddy-system.zip.tmp"
 
-# Only replace if downloads succeeded
 if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.tmp" ]; then
   mv "$LOCAL_DIR/ClaudeCode.zip.tmp" "$LOCAL_DIR/ClaudeCode.zip"
   mv "$LOCAL_DIR/buddy-system.zip.tmp" "$LOCAL_DIR/buddy-system.zip"
 
-  # Extract and apply ClaudeCode settings
-  TMPEXT=$(mktemp -d)
-  unzip -qo "$LOCAL_DIR/ClaudeCode.zip" -d "$TMPEXT"
-  # Update commands (zip root contains commands/ directly, no subdirectory)
-  if [ -d "$TMPEXT/commands" ]; then
-    mkdir -p "$HOME/.claude/commands"
-    cp "$TMPEXT/commands/"*.md "$HOME/.claude/commands/" 2>/dev/null
-  fi
-  rm -rf "$TMPEXT"
-
-  # Extract and apply buddy.js if present
+  # --- STEP 1: install buddy-system FIRST (the real buddy Claude built) ---
   BTMP=$(mktemp -d)
   unzip -qo "$LOCAL_DIR/buddy-system.zip" -d "$BTMP" 2>/dev/null
   if [ -f "$BTMP/buddy.js" ]; then
     BUDDY_DEST="$HOME/Claude/buddy-system"
     mkdir -p "$BUDDY_DEST"
     cp "$BTMP/buddy.js" "$BUDDY_DEST/buddy.js"
-    # Install default collection only if user has none
+    [ -f "$BTMP/buddy-collection-default.json" ] && cp "$BTMP/buddy-collection-default.json" "$BUDDY_DEST/buddy-collection-default.json"
+    [ -f "$BTMP/README.md" ] && cp "$BTMP/README.md" "$BUDDY_DEST/README.md"
+    [ -f "$BTMP/Info.md" ] && cp "$BTMP/Info.md" "$BUDDY_DEST/Info.md"
+    [ -f "$BTMP/INSTALL-FOR-CLAUDE.md" ] && cp "$BTMP/INSTALL-FOR-CLAUDE.md" "$BUDDY_DEST/INSTALL-FOR-CLAUDE.md"
     if [ ! -f "$HOME/.claude/buddy-collection.json" ] && [ -f "$BTMP/buddy-collection-default.json" ]; then
       cp "$BTMP/buddy-collection-default.json" "$HOME/.claude/buddy-collection.json"
     fi
+    printf "  ${GREEN}✓${R} buddy-system installed\n"
   fi
   rm -rf "$BTMP"
 
-  echo "$REMOTE_SHA" > "$CACHE_FILE"
-  printf "  ${GREEN}✓${R} ${BOLD}Updated!${R} ClaudeCode.zip + buddy-system.zip + commands synced\n"
+  # --- STEP 2: install ClaudeCode overlays (DLC layered over buddy) ---
+  TMPEXT=$(mktemp -d)
+  unzip -qo "$LOCAL_DIR/ClaudeCode.zip" -d "$TMPEXT"
+  if [ -d "$TMPEXT/commands" ]; then
+    mkdir -p "$HOME/.claude/commands"
+    cp "$TMPEXT/commands/"*.md "$HOME/.claude/commands/" 2>/dev/null
+  fi
+  if [ -d "$TMPEXT/bin" ]; then
+    mkdir -p "$HOME/.claude/bin"
+    cp "$TMPEXT/bin/"* "$HOME/.claude/bin/" 2>/dev/null
+    chmod +x "$HOME/.claude/bin/"* 2>/dev/null
+  fi
+  rm -rf "$TMPEXT"
+  printf "  ${GREEN}✓${R} ClaudeCode overlays installed\n"
 
-  # Show buddy stats after update so user sees their collection is intact
+  echo "$REMOTE_SHA" > "$CACHE_FILE"
+  rm -f "$PENDING_FILE"
+  printf "  ${GREEN}✓${R} ${BOLD}Updated!${R} ClaudeCode-Better synced to $REMOTE_SHA\n"
+
   if command -v buddy &>/dev/null; then
     printf "  ${DIM}Buddy collection:${R}\n"
     buddy stats 2>/dev/null
