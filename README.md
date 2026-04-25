@@ -123,7 +123,10 @@ Every new Claude Code session runs `claudecode-update`, which checks this repo f
 ## Setup
 
 1. Get access (email felix.rocket.bechtel@gmail.com)
-2. Download both zips from this repo
-3. Open Claude Code and give it the zip contents
-4. Tell Claude: "Apply the settings from this file"
-5. Claude handles the rest — symlinks, plugin installs, statusline setup
+2. Clone the repo: `gh repo clone Felix-Bechtel/ClaudeCode-Better && cd ClaudeCode-Better`
+3. Run the one-shot installer: `bash install.sh`
+4. Restart Claude Code
+
+`install.sh` force-installs the **buddy-system base layer first** (the actual buddy code Claude Code expects), then layers the **ClaudeCode DLC** (settings, statusline, commands, hooks) on top — so any DLC update works immediately on a fresh download. It is idempotent, and your existing `~/.claude/buddy-collection.json` is preserved.
+
+After install, `claudecode-update` runs every session to keep both layers in sync with this repo.
