@@ -109,12 +109,24 @@ A CLI pet collection game that runs alongside Claude Code.
 
 ## Shell Scripts
 
-| Script | Location | Description |
-|--------|----------|-------------|
-| `claudecode-update` | `~/.local/bin/` | Auto-updates from this repo at session start |
-| `status` | `~/.local/bin/` | Quick terminal health check |
-| `buddy` | `~/.local/bin/` | Buddy system wrapper |
-| `slaughter` | `~/.local/bin/` | Standalone slaughter shortcut |
+All installed to `~/.local/bin/` — runnable from any terminal, or with `! prefix` from inside Claude Code.
+
+| Script | Description |
+|--------|-------------|
+| `update-claudecodebetter` | One-shot: updates the settings pack + Claude Code itself + bumps npm copy |
+| `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
+| `claudecode-update` | Check / install settings-pack updates only |
+| `status` | Quick terminal health check |
+| `buddy` | Buddy system wrapper |
+| `slaughter` | Standalone slaughter shortcut |
+
+Inside Claude Code, run any of these with `!` prefix, e.g.:
+
+```
+! commands
+! update-claudecodebetter
+! buddy stats
+```
 
 ## Auto-Update
 

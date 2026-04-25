@@ -1,0 +1,44 @@
+#!/bin/bash
+# Update the ClaudeCode-Better settings pack AND Claude Code itself, in one shot.
+# Run as `! update-claudecodebetter` inside Claude Code, or directly in terminal.
+
+GREEN='\033[32m'
+YEL='\033[33m'
+RED='\033[31m'
+DIM='\033[2m'
+BOLD='\033[1m'
+R='\033[0m'
+
+printf "${BOLD}[1/3]${R} Updating ClaudeCode-Better settings pack...\n"
+if command -v claudecode-update >/dev/null 2>&1; then
+  claudecode-update --yes
+else
+  printf "  ${RED}✗${R} claudecode-update not found on PATH (expected at ~/.local/bin/claudecode-update)\n"
+fi
+
+printf "\n${BOLD}[2/3]${R} Updating Claude Code itself...\n"
+CLAUDE_BIN=""
+for c in "$HOME/.local/bin/claude" "/opt/homebrew/bin/claude" "/usr/local/bin/claude"; do
+  if [ -x "$c" ] || [ -L "$c" ]; then CLAUDE_BIN="$c"; break; fi
+done
+if [ -n "$CLAUDE_BIN" ]; then
+  "$CLAUDE_BIN" update || printf "  ${YEL}⚠${R} claude update returned non-zero (may already be latest)\n"
+else
+  printf "  ${YEL}⚠${R} no claude binary found at standard paths\n"
+fi
+
+printf "\n${BOLD}[3/3]${R} Bumping npm copy ${DIM}(no-op if not npm-installed)${R}...\n"
+if command -v npm >/dev/null 2>&1; then
+  npm install -g @anthropic-ai/claude-code@latest 2>&1 | tail -3
+else
+  printf "  ${DIM}npm not found — skipping${R}\n"
+fi
+
+printf "\n${GREEN}${BOLD}✓ Updates complete.${R}\n"
+printf "${DIM}Installed version:${R} "
+if [ -n "$CLAUDE_BIN" ]; then
+  "$CLAUDE_BIN" --version 2>/dev/null || echo "(version check failed)"
+else
+  echo "(no claude binary)"
+fi
+printf "\n${YEL}⚠ Restart Claude Code (Ctrl+D or /exit) to load the new config + binary.${R}\n"
