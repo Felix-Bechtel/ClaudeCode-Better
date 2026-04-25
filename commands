@@ -1,0 +1,41 @@
+#!/bin/bash
+# Print all ClaudeCode-Better commands and slash commands.
+# Run as `! commands` inside Claude Code, or `commands` in a regular terminal.
+
+GREEN='\033[32m'
+DIM='\033[2m'
+BOLD='\033[1m'
+CYAN='\033[36m'
+R='\033[0m'
+
+printf "${BOLD}ClaudeCode-Better — Available Commands${R}\n\n"
+
+printf "${CYAN}${BOLD}SHELL COMMANDS${R} ${DIM}(type with ! prefix in Claude Code, or run directly in terminal)${R}\n"
+printf "  ${GREEN}! update-claudecodebetter${R}   Update settings pack + Claude Code itself + bump npm copy\n"
+printf "  ${GREEN}! commands${R}                  Show this list\n"
+printf "  ${GREEN}! claudecode-update${R}         Check / install settings-pack updates only\n"
+printf "  ${GREEN}! status${R}                    Quick health check of your Claude Code setup\n"
+printf "  ${GREEN}! buddy stats${R}               Active buddy stats panel\n"
+printf "  ${GREEN}! buddy index${R}               Species collection grid\n"
+printf "  ${GREEN}! buddy log${R}                 Full log: collection + customization + eggs\n"
+printf "  ${GREEN}! buddy catalogue${R}           Browse all 18 species + eyes + hats\n"
+printf "  ${GREEN}! buddy claim${R}               Pick up dropped eggs\n"
+printf "  ${GREEN}! buddy hatch${R}               Hatch a claimed egg\n"
+printf "  ${GREEN}! buddy equip <name>${R}        Switch active buddy / cosmetics\n"
+printf "  ${GREEN}! buddy rename <name>${R}       Rename active buddy (1 rename point)\n"
+printf "  ${GREEN}! slaughter <name>${R}          Kill any buddy aged 2+ years\n"
+printf "  ${GREEN}! buddy help${R}                Full buddy command reference\n"
+printf "\n"
+
+printf "${CYAN}${BOLD}SLASH COMMANDS${R} ${DIM}(type / in Claude Code)${R}\n"
+printf "  ${GREEN}/just-do-it${R}                 Skip confirmations + auto-prime gh/git/MCP/bash/claude doctor\n"
+printf "  ${GREEN}/update-claudecodebetter${R}    In-chat update flow (settings pack + Claude Code)\n"
+printf "  ${GREEN}/verify-settings${R}            Full setup audit (settings, symlinks, plugins, statusline)\n"
+printf "  ${GREEN}/status${R}                     Quick health check\n"
+printf "  ${GREEN}/keep-awake${R}                 Toggle caffeinate (prevent macOS sleep)\n"
+printf "  ${GREEN}/remove-ralph${R}               Uninstall the Ralph Loop plugin\n"
+printf "  ${GREEN}/effort low|medium|high|max${R} Change effort level (built-in)\n"
+printf "\n"
+
+printf "${DIM}Repo: https://github.com/Felix-Bechtel/ClaudeCode-Better${R}\n"
+printf "${DIM}Run: ${BOLD}! update-claudecodebetter${R}${DIM} to pull the latest changes.${R}\n"
