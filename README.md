@@ -118,7 +118,7 @@ All installed to `~/.local/bin/` — runnable from any terminal, or with `! pref
 | `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
 | `claudecode-update` | Check / install settings-pack updates only |
 | `status` | Quick terminal health check |
-| `plan [pro\|5x\|20x\|auto]` | Switch the Claude plan token budget shown in the footer |
+| `plan [1\|2\|3\|4]` | Switch Claude plan: 1=Pro 44k · 2=Max 5x 88k · 3=Max 20x 220k · 4=auto-detect (also accepts `pro`/`5x`/`20x`/`auto`) |
 | `buddy` | Buddy system wrapper |
 | `slaughter` | Standalone slaughter shortcut |
 
