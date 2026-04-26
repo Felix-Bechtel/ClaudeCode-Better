@@ -99,6 +99,25 @@ if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.t
     cp "$TMPEXT/bin/"* "$HOME/.claude/bin/" 2>/dev/null
     chmod +x "$HOME/.claude/bin/"* 2>/dev/null
   fi
+
+  # statusline.py + CLAUDE.md are not user-customized — refresh them so bug
+  # fixes (e.g. flicker, hook JSON shape) propagate to existing installs
+  # without forcing the user to re-run install.sh. settings.json is left
+  # alone because users edit it (env vars, plugins, statusline overrides).
+  SETTINGS_DEST="$HOME/Claude/Claude Code Settings"
+  mkdir -p "$SETTINGS_DEST"
+  for f in statusline.py statusline.js CLAUDE.md; do
+    if [ -f "$TMPEXT/$f" ]; then
+      cp "$TMPEXT/$f" "$SETTINGS_DEST/$f"
+      # Mirror to ~/.claude/$f if it isn't already a symlink to SETTINGS_DEST.
+      if [ ! -L "$HOME/.claude/$f" ] && [ -e "$HOME/.claude/$f" ]; then
+        cp "$TMPEXT/$f" "$HOME/.claude/$f"
+      elif [ ! -e "$HOME/.claude/$f" ]; then
+        ln -sfn "$SETTINGS_DEST/$f" "$HOME/.claude/$f"
+      fi
+    fi
+  done
+
   rm -rf "$TMPEXT"
   printf "  ${GREEN}✓${R} ClaudeCode overlays installed\n"
 
