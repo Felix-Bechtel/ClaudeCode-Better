@@ -26,8 +26,8 @@ case "$1" in
   --check) MODE="prompt" ;;
 esac
 
-# Get latest commit SHA from GitHub
-REMOTE_SHA=$(gh api "repos/$REPO/commits/main" --jq '.sha' 2>/dev/null | head -c 7)
+# Get latest commit SHA from GitHub (with timeout — never hang the session)
+REMOTE_SHA=$(GH_PROMPT_DISABLED=1 perl -e 'alarm 15; exec @ARGV' gh api "repos/$REPO/commits/main" --jq '.sha' 2>/dev/null | head -c 7)
 if [ -z "$REMOTE_SHA" ]; then
   printf "  ${DIM}Update check: couldn't reach GitHub${R}\n"
   exit 0
@@ -53,8 +53,17 @@ fi
 # MODE is "auto" or "yes" — proceed with install.
 printf "  ${DIM}Downloading latest zips...${R}\n"
 mkdir -p "$LOCAL_DIR"
-gh api "repos/$REPO/contents/Claude Code Zips/ClaudeCode.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/ClaudeCode.zip.tmp"
-gh api "repos/$REPO/contents/Claude Code Zips/buddy-system.zip" --jq '.download_url' 2>/dev/null | xargs -I{} curl -sL "{}" -o "$LOCAL_DIR/buddy-system.zip.tmp"
+
+# Hard timeout helper — macOS lacks `timeout`, so use perl's alarm.
+run_with_timeout() {
+  local secs="$1"; shift
+  perl -e 'alarm shift; exec @ARGV' "$secs" "$@"
+}
+
+CC_URL=$(run_with_timeout 15 gh api "repos/$REPO/contents/Claude Code Zips/ClaudeCode.zip" --jq '.download_url' 2>/dev/null)
+BS_URL=$(run_with_timeout 15 gh api "repos/$REPO/contents/Claude Code Zips/buddy-system.zip" --jq '.download_url' 2>/dev/null)
+[ -n "$CC_URL" ] && curl -sL --connect-timeout 10 --max-time 90 "$CC_URL" -o "$LOCAL_DIR/ClaudeCode.zip.tmp"
+[ -n "$BS_URL" ] && curl -sL --connect-timeout 10 --max-time 90 "$BS_URL" -o "$LOCAL_DIR/buddy-system.zip.tmp"
 
 if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.tmp" ]; then
   mv "$LOCAL_DIR/ClaudeCode.zip.tmp" "$LOCAL_DIR/ClaudeCode.zip"

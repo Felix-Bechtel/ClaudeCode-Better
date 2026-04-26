@@ -21,15 +21,30 @@ CLAUDE_BIN=""
 for c in "$HOME/.local/bin/claude" "/opt/homebrew/bin/claude" "/usr/local/bin/claude"; do
   if [ -x "$c" ] || [ -L "$c" ]; then CLAUDE_BIN="$c"; break; fi
 done
+
+# Hard timeout helper — macOS lacks `timeout`, so use perl's alarm.
+# Also redirects stdin from /dev/null so nothing can hang waiting for input.
+run_with_timeout() {
+  local secs="$1"; shift
+  perl -e 'alarm shift; exec @ARGV' "$secs" "$@" </dev/null
+}
+
 if [ -n "$CLAUDE_BIN" ]; then
-  "$CLAUDE_BIN" update || printf "  ${YEL}⚠${R} claude update returned non-zero (may already be latest)\n"
+  # 120s ceiling: claude update typically finishes in seconds; if it stalls
+  # (e.g. trying to replace the binary that's hosting the current session),
+  # we abort instead of freezing the user's terminal.
+  run_with_timeout 120 "$CLAUDE_BIN" update \
+    || printf "  ${YEL}⚠${R} claude update timed out or returned non-zero — already latest, or run it again from a fresh terminal\n"
 else
   printf "  ${YEL}⚠${R} no claude binary found at standard paths\n"
 fi
 
 printf "\n${BOLD}[3/3]${R} Bumping npm copy ${DIM}(no-op if not npm-installed)${R}...\n"
 if command -v npm >/dev/null 2>&1; then
-  npm install -g @anthropic-ai/claude-code@latest 2>&1 | tail -3
+  # 90s ceiling: `npm install -g` is the #1 freeze offender (permission prompts,
+  # slow registry, lockfile contention). Bound it hard.
+  run_with_timeout 90 npm install -g @anthropic-ai/claude-code@latest 2>&1 | tail -3 \
+    || printf "  ${YEL}⚠${R} npm install timed out — skip or run manually with sudo if needed\n"
 else
   printf "  ${DIM}npm not found — skipping${R}\n"
 fi
