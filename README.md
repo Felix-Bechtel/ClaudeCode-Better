@@ -46,9 +46,9 @@ Everything you need for an optimized Claude Code setup:
 
 **Hooks:**
 - `PreCompact` — Saves conversation context to memory before compaction
-- `Stop` — Reminds to save important decisions to memory
+- `Stop` — Reminds to save important decisions to memory + invalidates token-tracker cache so the footer reflects post-turn usage
 - `PermissionRequest` — Auto-approves all permission requests (bypass mode)
-- `UserPromptSubmit` — Captures `/effort` changes for the statusline
+- `UserPromptSubmit` — Captures `/effort` changes for the statusline + invalidates token-tracker cache so the footer refreshes the moment you submit a prompt (no more "stuck counter")
 
 ---
 
