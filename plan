@@ -1,0 +1,122 @@
+#!/bin/bash
+# ClaudeCode-Better — switch Claude plan that drives the footer token budget.
+# Run as `! plan` inside Claude Code, or `plan` in a regular terminal.
+#
+# Plans:
+#   Pro       — 44k tokens / 5h
+#   Max 5x    — 88k tokens / 5h
+#   Max 20x   — 220k tokens / 5h
+#
+# Usage:
+#   plan              show current + menu
+#   plan pro          set to Pro (44k)
+#   plan 5x           set to Max 5x (88k)
+#   plan 20x          set to Max 20x (220k)
+#   plan auto         clear override, auto-detect from keychain
+
+GREEN='\033[32m'
+YEL='\033[33m'
+RED='\033[31m'
+DIM='\033[2m'
+BOLD='\033[1m'
+CYAN='\033[36m'
+MAG='\033[35m'
+R='\033[0m'
+
+SETTINGS="$HOME/.claude/settings.json"
+TT_CACHE="${TMPDIR:-/tmp}/token-tracker-usage.json"
+SETTINGS_CACHE="${TMPDIR:-/tmp}/statusline-settings.json"
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf "${RED}✗ jq is required (brew install jq).${R}\n"
+  exit 1
+fi
+
+if [ ! -f "$SETTINGS" ]; then
+  printf "${RED}✗ %s not found${R}\n" "$SETTINGS"
+  exit 1
+fi
+
+# Force a re-read of settings + a fresh API call on the next status tick.
+invalidate_caches() {
+  rm -f "$TT_CACHE" "$SETTINGS_CACHE" 2>/dev/null
+  # Touch settings so any mtime-based cache invalidates too.
+  touch "$SETTINGS"
+}
+
+set_plan() {
+  local name="$1" budget="$2"
+  local tmp="${SETTINGS}.tmp.$$"
+  jq --argjson b "$budget" --arg n "$name" \
+    '. + {statusLineTokenBudget: $b, statusLinePlanName: $n}' \
+    "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS" || {
+      rm -f "$tmp"
+      printf "${RED}✗ Failed to write %s${R}\n" "$SETTINGS"
+      exit 1
+    }
+  invalidate_caches
+  printf "${GREEN}✓${R} Plan switched to ${BOLD}${MAG}%s${R} ${DIM}(${R}${CYAN}%s${R} ${DIM}tokens / 5h)${R}\n" "$name" "$budget"
+  printf "${DIM}  Footer refreshes on next status tick (~1s).${R}\n"
+}
+
+clear_plan() {
+  local tmp="${SETTINGS}.tmp.$$"
+  jq 'del(.statusLineTokenBudget, .statusLinePlanName)' "$SETTINGS" > "$tmp" \
+    && mv "$tmp" "$SETTINGS" || {
+      rm -f "$tmp"
+      printf "${RED}✗ Failed to write %s${R}\n" "$SETTINGS"
+      exit 1
+    }
+  invalidate_caches
+  printf "${GREEN}✓${R} Plan override cleared. Auto-detecting from keychain.\n"
+  printf "${DIM}  Footer refreshes on next status tick (~1s).${R}\n"
+}
+
+show_menu() {
+  local current_budget current_name keychain_tier sub_type
+  current_budget=$(jq -r '.statusLineTokenBudget // empty' "$SETTINGS" 2>/dev/null)
+  current_name=$(jq -r '.statusLinePlanName // empty' "$SETTINGS" 2>/dev/null)
+
+  printf "${BOLD}Claude Plan${R} ${DIM}— footer token budget switcher${R}\n\n"
+
+  if [ -n "$current_budget" ]; then
+    printf "${DIM}Current override:${R} ${MAG}${BOLD}%s${R} ${DIM}(${R}${CYAN}%s${R} ${DIM}tokens)${R}\n" \
+      "${current_name:-custom}" "$current_budget"
+  else
+    # Try to peek at keychain tier so users know what auto-detect picked.
+    if [ "$(uname)" = "Darwin" ]; then
+      raw=$(security find-generic-password -s 'Claude Code-credentials' -a "$USER" -w 2>/dev/null)
+      keychain_tier=$(printf "%s" "$raw" | jq -r '.claudeAiOauth.rateLimitTier // empty' 2>/dev/null)
+      sub_type=$(printf "%s" "$raw" | jq -r '.claudeAiOauth.subscriptionType // empty' 2>/dev/null)
+    fi
+    if [ -n "$keychain_tier$sub_type" ]; then
+      printf "${DIM}Current override:${R} ${YEL}none${R} ${DIM}— auto-detect (${R}${CYAN}tier=${keychain_tier:-?}${R}${DIM}, sub=${sub_type:-?})${R}\n"
+    else
+      printf "${DIM}Current override:${R} ${YEL}none${R} ${DIM}— auto-detect from keychain${R}\n"
+    fi
+  fi
+
+  printf "\n${BOLD}Available plans${R}\n"
+  printf "  ${GREEN}! plan pro${R}    ${DIM}Pro       —${R} ${CYAN}44k${R}  ${DIM}tokens / 5h    (5x)${R}\n"
+  printf "  ${GREEN}! plan 5x${R}     ${DIM}Max 5x    —${R} ${CYAN}88k${R}  ${DIM}tokens / 5h    (20x rate)${R}\n"
+  printf "  ${GREEN}! plan 20x${R}    ${DIM}Max 20x   —${R} ${CYAN}220k${R} ${DIM}tokens / 5h${R}\n"
+  printf "  ${GREEN}! plan auto${R}   ${DIM}Clear override, auto-detect from keychain${R}\n"
+  printf "\n${DIM}Run ${R}${BOLD}! plan <name>${R}${DIM} to switch.${R}\n"
+}
+
+case "${1:-}" in
+  pro|Pro|PRO)
+    set_plan "Pro" 44000 ;;
+  5x|max5x|max-5x|Max5x|Max-5x|max_5x)
+    set_plan "Max 5x" 88000 ;;
+  20x|max20x|max-20x|Max20x|Max-20x|max_20x)
+    set_plan "Max 20x" 220000 ;;
+  auto|reset|clear|none|default)
+    clear_plan ;;
+  ""|help|-h|--help|menu)
+    show_menu ;;
+  *)
+    printf "${RED}✗ Unknown plan: %s${R}\n\n" "$1"
+    show_menu
+    exit 1 ;;
+esac
