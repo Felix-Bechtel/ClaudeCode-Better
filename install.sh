@@ -72,7 +72,27 @@ unzip -qo "$DLC_ZIP" -d "$DTMP"
 # settings + statusline + CLAUDE.md go to ~/Claude/Claude Code Settings/
 SETTINGS_DEST="$HOME/Claude/Claude Code Settings"
 mkdir -p "$SETTINGS_DEST"
-[ -f "$DTMP/settings.json" ]  && cp -f "$DTMP/settings.json"  "$SETTINGS_DEST/settings.json"
+# Preserve the user's selected plan + budget across re-installs. The template
+# in the zip ships without statusLineTokenBudget / statusLinePlanName, but if
+# the user already set one with `! plan`, copying the template would silently
+# revert their footer to the auto-detected budget.
+EXISTING_SETTINGS="$SETTINGS_DEST/settings.json"
+PRESERVED_BUDGET=""
+PRESERVED_PLAN=""
+if command -v jq >/dev/null 2>&1 && [ -f "$EXISTING_SETTINGS" ]; then
+  PRESERVED_BUDGET=$(jq -r '.statusLineTokenBudget // empty' "$EXISTING_SETTINGS" 2>/dev/null)
+  PRESERVED_PLAN=$(jq -r '.statusLinePlanName // empty' "$EXISTING_SETTINGS" 2>/dev/null)
+fi
+if [ -f "$DTMP/settings.json" ]; then
+  cp -f "$DTMP/settings.json" "$SETTINGS_DEST/settings.json"
+  if [ -n "$PRESERVED_BUDGET" ] && command -v jq >/dev/null 2>&1; then
+    TMP="$SETTINGS_DEST/settings.json.tmp.$$"
+    jq --argjson b "$PRESERVED_BUDGET" --arg n "$PRESERVED_PLAN" \
+      '. + {statusLineTokenBudget: $b} + (if $n == "" then {} else {statusLinePlanName: $n} end)' \
+      "$SETTINGS_DEST/settings.json" > "$TMP" && mv "$TMP" "$SETTINGS_DEST/settings.json" \
+      && printf "  ${DIM}preserved your plan: ${R}${PRESERVED_PLAN:-custom}${DIM} (${PRESERVED_BUDGET} tokens)${R}\n"
+  fi
+fi
 [ -f "$DTMP/statusline.py" ]  && cp -f "$DTMP/statusline.py"  "$SETTINGS_DEST/statusline.py"
 [ -f "$DTMP/statusline.js" ]  && cp -f "$DTMP/statusline.js"  "$SETTINGS_DEST/statusline.js"
 [ -f "$DTMP/CLAUDE.md" ]      && cp -f "$DTMP/CLAUDE.md"      "$SETTINGS_DEST/CLAUDE.md"
