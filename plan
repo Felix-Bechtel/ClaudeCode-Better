@@ -9,10 +9,9 @@
 #
 # Usage:
 #   plan              show current + menu
-#   plan pro          set to Pro (44k)
-#   plan 5x           set to Max 5x (88k)
-#   plan 20x          set to Max 20x (220k)
-#   plan auto         clear override, auto-detect from keychain
+#   plan 1 | pro      set to Pro (44k)
+#   plan 2 | 5x       set to Max 5x (88k)
+#   plan 3 | 20x      set to Max 20x (220k)
 
 GREEN='\033[32m'
 YEL='\033[33m'
@@ -59,76 +58,24 @@ set_plan() {
   printf "${DIM}  Footer refreshes on next status tick (~1s).${R}\n"
 }
 
-detect_plan_from_keychain() {
-  # Echo "name|budget" detected from the macOS Keychain, or empty on miss.
-  if [ "$(uname)" != "Darwin" ]; then return; fi
-  local raw tier sub
-  raw=$(security find-generic-password -s 'Claude Code-credentials' -a "$USER" -w 2>/dev/null)
-  [ -z "$raw" ] && raw=$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null)
-  [ -z "$raw" ] && return
-  tier=$(printf "%s" "$raw" | jq -r '.claudeAiOauth.rateLimitTier // empty' 2>/dev/null | tr '[:upper:]' '[:lower:]')
-  sub=$(printf "%s" "$raw"  | jq -r '.claudeAiOauth.subscriptionType // empty'  2>/dev/null | tr '[:upper:]' '[:lower:]')
-  case "$tier" in
-    default_claude_pro|pro)              echo "Pro|44000";        return ;;
-    default_claude_max_5x|max_5x|5x)     echo "Max 5x|88000";     return ;;
-    default_claude_max_20x|max_20x|20x)  echo "Max 20x|220000";   return ;;
-  esac
-  case "$sub" in
-    pro)  echo "Pro|44000" ;;
-    max)  echo "Max 5x|88000" ;;   # safe default for max when tier is missing
-  esac
-}
-
-clear_plan() {
-  local tmp="${SETTINGS}.tmp.$$"
-  jq 'del(.statusLineTokenBudget, .statusLinePlanName)' "$SETTINGS" > "$tmp" \
-    && mv "$tmp" "$SETTINGS" || {
-      rm -f "$tmp"
-      printf "${RED}✗ Failed to write %s${R}\n" "$SETTINGS"
-      exit 1
-    }
-  invalidate_caches
-  local detected name budget
-  detected=$(detect_plan_from_keychain)
-  if [ -n "$detected" ]; then
-    name="${detected%%|*}"
-    budget="${detected##*|}"
-    printf "${GREEN}✓${R} Plan override cleared. Auto-detected ${BOLD}${MAG}%s${R} ${DIM}(${R}${CYAN}%s${R} ${DIM}tokens / 5h) from keychain.${R}\n" "$name" "$budget"
-  else
-    printf "${GREEN}✓${R} Plan override cleared. Falling back to default ${BOLD}${MAG}Pro${R} ${DIM}(44k) — keychain didn't report a tier.${R}\n"
-  fi
-  printf "${DIM}  Footer refreshes on next status tick (~1s).${R}\n"
-}
-
 show_menu() {
-  local current_budget current_name keychain_tier sub_type
+  local current_budget current_name
   current_budget=$(jq -r '.statusLineTokenBudget // empty' "$SETTINGS" 2>/dev/null)
   current_name=$(jq -r '.statusLinePlanName // empty' "$SETTINGS" 2>/dev/null)
 
   printf "${BOLD}Claude Plan${R} ${DIM}— footer token budget switcher${R}\n\n"
 
   if [ -n "$current_budget" ]; then
-    printf "${DIM}Current override:${R} ${MAG}${BOLD}%s${R} ${DIM}(${R}${CYAN}%s${R} ${DIM}tokens)${R}\n" \
+    printf "${DIM}Current:${R} ${MAG}${BOLD}%s${R} ${DIM}(${R}${CYAN}%s${R} ${DIM}tokens / 5h)${R}\n" \
       "${current_name:-custom}" "$current_budget"
   else
-    # Try to peek at keychain tier so users know what auto-detect picked.
-    if [ "$(uname)" = "Darwin" ]; then
-      raw=$(security find-generic-password -s 'Claude Code-credentials' -a "$USER" -w 2>/dev/null)
-      keychain_tier=$(printf "%s" "$raw" | jq -r '.claudeAiOauth.rateLimitTier // empty' 2>/dev/null)
-      sub_type=$(printf "%s" "$raw" | jq -r '.claudeAiOauth.subscriptionType // empty' 2>/dev/null)
-    fi
-    if [ -n "$keychain_tier$sub_type" ]; then
-      printf "${DIM}Current override:${R} ${YEL}none${R} ${DIM}— auto-detect (${R}${CYAN}tier=${keychain_tier:-?}${R}${DIM}, sub=${sub_type:-?})${R}\n"
-    else
-      printf "${DIM}Current override:${R} ${YEL}none${R} ${DIM}— auto-detect from keychain${R}\n"
-    fi
+    printf "${DIM}Current:${R} ${YEL}not set${R} ${DIM}— pick one below${R}\n"
   fi
 
   printf "\n${BOLD}Available plans${R}\n"
-  printf "  ${GREEN}! plan 1${R}  ${DIM}or${R} ${GREEN}pro${R}     ${DIM}Pro       —${R} ${CYAN}44k${R}  ${DIM}tokens / 5h    (5x)${R}\n"
-  printf "  ${GREEN}! plan 2${R}  ${DIM}or${R} ${GREEN}5x${R}      ${DIM}Max 5x    —${R} ${CYAN}88k${R}  ${DIM}tokens / 5h    (20x rate)${R}\n"
+  printf "  ${GREEN}! plan 1${R}  ${DIM}or${R} ${GREEN}pro${R}     ${DIM}Pro       —${R} ${CYAN}44k${R}  ${DIM}tokens / 5h${R}\n"
+  printf "  ${GREEN}! plan 2${R}  ${DIM}or${R} ${GREEN}5x${R}      ${DIM}Max 5x    —${R} ${CYAN}88k${R}  ${DIM}tokens / 5h${R}\n"
   printf "  ${GREEN}! plan 3${R}  ${DIM}or${R} ${GREEN}20x${R}     ${DIM}Max 20x   —${R} ${CYAN}220k${R} ${DIM}tokens / 5h${R}\n"
-  printf "  ${GREEN}! plan 4${R}  ${DIM}or${R} ${GREEN}auto${R}    ${DIM}Clear override, auto-detect from keychain${R}\n"
   printf "\n${DIM}Run ${R}${BOLD}! plan <number-or-name>${R}${DIM} to switch.${R}\n"
 }
 
@@ -139,8 +86,6 @@ case "${1:-}" in
     set_plan "Max 5x" 88000 ;;
   3|20x|max20x|max-20x|Max20x|Max-20x|max_20x)
     set_plan "Max 20x" 220000 ;;
-  4|auto|reset|clear|none|default)
-    clear_plan ;;
   ""|help|-h|--help|menu)
     show_menu ;;
   *)
