@@ -31,7 +31,7 @@ Everything you need for an optimized Claude Code setup:
 - Context window auto-adjusts for 200k or 1M models
 - Effort level updates live when you use `/effort`
 - 5-hour token budget with progress bar, reset timer, and plan name (Pro / Max 5x / Max 20x)
-- `! plan <pro|5x|20x|auto>` overrides the budget instantly when you upgrade your Claude plan — footer refreshes on the next status tick (~1s) and invalidates the API cache so the new ceiling shows immediately
+- `! plan 1|2|3` sets the budget instantly when you upgrade your Claude plan — footer refreshes on the next status tick (~1s) and invalidates the API cache so the new ceiling shows immediately
 - Caffeinate integration (prevents macOS sleep)
 
 **Slash Commands:**
@@ -118,7 +118,7 @@ All installed to `~/.local/bin/` — runnable from any terminal, or with `! pref
 | `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
 | `claudecode-update` | Check / install settings-pack updates only |
 | `status` | Quick terminal health check |
-| `plan [1\|2\|3\|4]` | Switch Claude plan: 1=Pro 44k · 2=Max 5x 88k · 3=Max 20x 220k · 4=auto-detect (also accepts `pro`/`5x`/`20x`/`auto`) |
+| `plan [1\|2\|3]` | Set the Claude plan: 1=Pro 44k · 2=Max 5x 88k · 3=Max 20x 220k (also accepts `pro`/`5x`/`20x`) |
 | `buddy` | Buddy system wrapper |
 | `slaughter` | Standalone slaughter shortcut |
 
