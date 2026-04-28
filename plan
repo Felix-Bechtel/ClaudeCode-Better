@@ -24,6 +24,7 @@ R='\033[0m'
 
 SETTINGS="$HOME/.claude/settings.json"
 TT_CACHE="${TMPDIR:-/tmp}/token-tracker-usage.json"
+TT_ERROR="${TMPDIR:-/tmp}/token-tracker-error.json"
 SETTINGS_CACHE="${TMPDIR:-/tmp}/statusline-settings.json"
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -38,7 +39,7 @@ fi
 
 # Force a re-read of settings + a fresh API call on the next status tick.
 invalidate_caches() {
-  rm -f "$TT_CACHE" "$SETTINGS_CACHE" 2>/dev/null
+  rm -f "$TT_CACHE" "$TT_ERROR" "$SETTINGS_CACHE" 2>/dev/null
   # Touch settings so any mtime-based cache invalidates too.
   touch "$SETTINGS"
 }
