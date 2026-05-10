@@ -124,7 +124,7 @@ printf "  ${GREEN}✓${R} DLC overlay installed (settings, commands, hooks, bin)
 # ---------- STEP 3: install shell scripts to ~/.local/bin ----------
 printf "${BOLD}[3/3]${R} Installing shell scripts to ~/.local/bin...\n"
 mkdir -p "$HOME/.local/bin"
-for script in claudecode-update status update-claudecodebetter commands plan; do
+for script in claudecode-update status update-claudecodebetter commands; do
   if [ -f "$SCRIPT_DIR/$script" ]; then
     cp -f "$SCRIPT_DIR/$script" "$HOME/.local/bin/$script"
     chmod +x "$HOME/.local/bin/$script"
@@ -155,12 +155,9 @@ if command -v git &>/dev/null && git -C "$SCRIPT_DIR" rev-parse --short=7 HEAD &
 fi
 
 printf "${GREEN}${BOLD}✓ Install complete.${R}\n\n"
-printf "${BOLD}${YEL}→ Set your Claude plan with${R} ${BOLD}${GREEN}! plan${R}${BOLD}${YEL} so the footer shows the right token budget.${R}\n"
-printf "${DIM}    1 = Pro 44k   ·   2 = Max 5x 88k   ·   3 = Max 20x 220k${R}\n\n"
 printf "${DIM}Next steps:${R}\n"
 printf "  • Make sure ${BOLD}~/.local/bin${R} is on your PATH (add to ~/.zshrc if needed)\n"
 printf "  • Restart Claude Code to load the new settings\n"
-printf "  • Run ${BOLD}! plan${R} to set your Claude plan\n"
 printf "  • Run ${BOLD}! buddy stats${R} to see your starter buddy\n\n"
 
 # ---------- Show the full command list at the end of install ----------
