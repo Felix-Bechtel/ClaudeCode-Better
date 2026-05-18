@@ -124,7 +124,7 @@ printf "  ${GREEN}✓${R} DLC overlay installed (settings, commands, hooks, bin)
 # ---------- STEP 3: install shell scripts to ~/.local/bin ----------
 printf "${BOLD}[3/3]${R} Installing shell scripts to ~/.local/bin...\n"
 mkdir -p "$HOME/.local/bin"
-for script in claudecode-update status update-claudecodebetter commands; do
+for script in claudecode-update status update-claudecodebetter commands plan; do
   if [ -f "$SCRIPT_DIR/$script" ]; then
     cp -f "$SCRIPT_DIR/$script" "$HOME/.local/bin/$script"
     chmod +x "$HOME/.local/bin/$script"

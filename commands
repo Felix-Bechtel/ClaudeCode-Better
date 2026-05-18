@@ -21,6 +21,7 @@ printf "  ${GREEN}! update-claudecodebetter${R}   Update settings pack + Claude 
 printf "  ${GREEN}! commands${R}                  Show this list\n"
 printf "  ${GREEN}! claudecode-update${R}         Check / install settings-pack updates only\n"
 printf "  ${GREEN}! status${R}                    Quick health check of your Claude Code setup\n"
+printf "  ${GREEN}! plan${R}                      Display the current Claude plan (read-only)\n"
 printf "  ${GREEN}! buddy stats${R}               Active buddy stats panel\n"
 printf "  ${GREEN}! buddy index${R}               Species collection grid\n"
 printf "  ${GREEN}! buddy log${R}                 Full log: collection + customization + eggs\n"
