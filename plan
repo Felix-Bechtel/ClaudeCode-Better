@@ -1,0 +1,45 @@
+#!/bin/bash
+# Show the current Claude plan from settings — read-only display.
+# Run as `! plan` inside Claude Code, or `plan` in a regular terminal.
+#
+# This used to switch tiers; the footer no longer renders raw token counts,
+# so plan-switching has no effect. The command is preserved as a quick
+# "what plan am I on?" readout that people can show off.
+
+GREEN='\033[32m'
+YEL='\033[33m'
+DIM='\033[2m'
+BOLD='\033[1m'
+CYAN='\033[36m'
+MAG='\033[35m'
+R='\033[0m'
+
+SETTINGS="$HOME/.claude/settings.json"
+[ ! -f "$SETTINGS" ] && SETTINGS="$HOME/Claude/Claude Code Settings/settings.json"
+
+if [ ! -f "$SETTINGS" ] || ! command -v jq >/dev/null 2>&1; then
+  printf "${YEL}No plan configured.${R} ${DIM}(settings file or jq missing)${R}\n"
+  exit 0
+fi
+
+PLAN=$(jq -r '.statusLinePlanName // empty' "$SETTINGS" 2>/dev/null)
+BUDGET=$(jq -r '.statusLineTokenBudget // empty' "$SETTINGS" 2>/dev/null)
+
+printf "\n"
+printf "${MAG}${BOLD}╔════════════════════════════════════════════╗${R}\n"
+printf "${MAG}${BOLD}║${R}   ${YEL}${BOLD}Current Claude Plan${R}                      ${MAG}${BOLD}║${R}\n"
+printf "${MAG}${BOLD}╚════════════════════════════════════════════╝${R}\n"
+if [ -n "$PLAN" ]; then
+  printf "   ${GREEN}${BOLD}%s${R}" "$PLAN"
+  if [ -n "$BUDGET" ]; then
+    if [ "$BUDGET" -ge 1000 ] 2>/dev/null; then
+      printf "  ${DIM}(%sk tokens / 5h)${R}" "$((BUDGET / 1000))"
+    else
+      printf "  ${DIM}(%s tokens / 5h)${R}" "$BUDGET"
+    fi
+  fi
+  printf "\n"
+else
+  printf "   ${DIM}auto-detected from API (no override set)${R}\n"
+fi
+printf "\n${DIM}Read-only display. Footer no longer shows raw token counts.${R}\n\n"
