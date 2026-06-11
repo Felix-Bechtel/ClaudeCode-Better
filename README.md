@@ -30,8 +30,9 @@ Everything you need for an optimized Claude Code setup:
 - Auto-detects subscription tier from macOS Keychain — no hardcoded budget (Pro 44k / Max 5x 88k / Max 20x 220k)
 - Context window auto-adjusts for 200k or 1M models
 - Effort level updates live when you use `/effort`
-- 5-hour token budget with progress bar, reset timer, and plan name (Pro / Max 5x / Max 20x)
-- `! plan 1|2|3` sets the budget instantly when you upgrade your Claude plan — footer refreshes on the next status tick (~1s) and invalidates the API cache so the new ceiling shows immediately
+- 5-hour token budget with progress bar, reset timer, and a **plan badge** (Pro / Max 5x / Max 20x / custom)
+- `! plans` opens the plan picker — your selection shows as a badge in the footer (the flex). An explicit selection always wins over auto-detection. Footer refreshes on the next status tick (~1s)
+- `! plan` shows the current plan (read-only)
 - Caffeinate integration (prevents macOS sleep)
 
 **Slash Commands:**
@@ -42,7 +43,6 @@ Everything you need for an optimized Claude Code setup:
 | `/status` | Quick health check of your setup |
 | `/verify-settings` | Full setup audit (settings, symlinks, plugins, statusline) |
 | `/keep-awake` | Toggle caffeinate (prevent sleep) |
-| `/remove-ralph` | Uninstall the Ralph Loop plugin |
 | `/effort low\|medium\|high\|max` | Change effort level (built-in) |
 
 **Hooks:**
@@ -118,7 +118,8 @@ All installed to `~/.local/bin/` — runnable from any terminal, or with `! pref
 | `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
 | `claudecode-update` | Check / install settings-pack updates only |
 | `status` | Quick terminal health check |
-| `plan [1\|2\|3]` | Set the Claude plan: 1=Pro 44k · 2=Max 5x 88k · 3=Max 20x 220k (also accepts `pro`/`5x`/`20x`) |
+| `plans [choice]` | **Select your plan** — 1=Pro · 2=Max 5x · 3=Max 20x · 4=Team · 5=Enterprise · 0=Auto, or a custom name. Shows as a badge in the footer |
+| `plan` | Display the current plan (read-only) |
 | `buddy` | Buddy system wrapper |
 | `slaughter` | Standalone slaughter shortcut |
 
@@ -126,13 +127,19 @@ Inside Claude Code, run any of these with `!` prefix, e.g.:
 
 ```
 ! commands
+! plans
 ! update-claudecodebetter
 ! buddy stats
 ```
 
 ## Auto-Update
 
-Every new Claude Code session runs `claudecode-update`, which checks this repo for new commits and downloads updated zips. Requires `gh` CLI authenticated with repo access.
+Every new Claude Code session **silently auto-updates in the background** — no prompt:
+- `claudecode-update --yes` pulls the latest zips from this repo, reinstalls the overlays, and refreshes the `~/.local/bin` helper scripts
+- Every installed Claude Code plugin is updated via `claude plugins update`
+- Updates load on the next session
+
+Requires `gh` CLI authenticated with repo access.
 
 ## Setup
 

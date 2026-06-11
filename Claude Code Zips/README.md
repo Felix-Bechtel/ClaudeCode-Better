@@ -31,13 +31,12 @@ Settings, commands, status line, and plugins for Claude Code.
 | `/verify-settings` | Full health check — symlinks, settings.json, commands, statusline, plugins, zips. Reports pass/fail. |
 | `/status` | Quick setup overview — plugins, model, permissions, keep-awake, available commands. |
 | `/keep-awake` | Turn OFF sleep prevention. Caffeinate runs automatically every session — this command disables it. |
-| `/remove-ralph` | Uninstall the ralph-loop plugin. |
 
 ### Session Start
 
-Every new conversation prompts you sequentially:
-1. **"Would you like to use just-do-it? (yes/no)"**
-2. **"Would you like me to check for Ralph Loop updates? (yes/no)"**
+Every new conversation:
+1. The settings pack and all installed plugins **auto-update silently in the background** — no prompt
+2. Claude asks: **"Would you like to use just-do-it? (yes/no)"**
 
 ### Settings Highlights
 
@@ -45,23 +44,21 @@ Every new conversation prompts you sequentially:
 - **Permissions**: bypassPermissions + PermissionRequest hook (auto-approves everything). Cycle with Shift+Tab.
 - **Keep-Awake**: always on via statusline (caffeinate auto-starts)
 - **Hooks**: PreCompact (save context), Stop (save decisions), PermissionRequest (auto-approve all)
-- **Status Line**: token tracker, 5h budget, context window bar, rate limit display
+- **Status Line**: token tracker, 5h budget, plan badge, context window bar, rate limit display
 - **Effort Level**: high
-
-### Plugins
-
-- **Ralph Loop** (`ralph-loop@claude-plugins-official`) — autonomous dev loops, iterates until task is done
 
 ### Shell Commands
 
 | Command | Description |
 |---------|-------------|
 | `! status` | Quick terminal status readout (model, plugins, commands, keep-awake) |
+| `! plans` | Select your plan (Pro / Max 5x / Max 20x / Team / Enterprise / custom) — shows as a footer badge |
+| `! plan` | Display the current plan (read-only) |
 | `! claudecode-update` | Check for and install updates from ClaudeCode-Better GitHub |
 
 ### Auto-Update
 
-Every new Claude Code session automatically runs `claudecode-update` to check GitHub for the latest version. If an update is available, it downloads new zips and syncs commands. Requires `gh` CLI.
+Every new Claude Code session silently auto-updates the settings pack and all installed plugins in the background — no prompt. Updates load on the next session. Requires `gh` CLI.
 
 ---
 

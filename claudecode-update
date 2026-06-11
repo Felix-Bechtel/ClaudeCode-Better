@@ -121,6 +121,21 @@ if [ -s "$LOCAL_DIR/ClaudeCode.zip.tmp" ] && [ -s "$LOCAL_DIR/buddy-system.zip.t
   rm -rf "$TMPEXT"
   printf "  ${GREEN}✓${R} ClaudeCode overlays installed\n"
 
+  # --- STEP 3: refresh helper scripts in ~/.local/bin from the repo ---
+  mkdir -p "$HOME/.local/bin"
+  for script in claudecode-update status update-claudecodebetter commands plan plans; do
+    S_URL=$(run_with_timeout 15 gh api "repos/$REPO/contents/$script" --jq '.download_url' 2>/dev/null)
+    if [ -n "$S_URL" ]; then
+      curl -sL --connect-timeout 10 --max-time 30 "$S_URL" -o "$HOME/.local/bin/$script.tmp" 2>/dev/null
+      if [ -s "$HOME/.local/bin/$script.tmp" ] && head -1 "$HOME/.local/bin/$script.tmp" | grep -q '^#!'; then
+        mv "$HOME/.local/bin/$script.tmp" "$HOME/.local/bin/$script"
+        chmod +x "$HOME/.local/bin/$script"
+      fi
+    fi
+    rm -f "$HOME/.local/bin/$script.tmp" 2>/dev/null
+  done
+  printf "  ${GREEN}✓${R} helper scripts refreshed (~/.local/bin)\n"
+
   echo "$REMOTE_SHA" > "$CACHE_FILE"
   rm -f "$PENDING_FILE"
   printf "  ${GREEN}✓${R} ${BOLD}Updated!${R} ClaudeCode-Better synced to $REMOTE_SHA\n"
