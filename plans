@@ -1,17 +1,18 @@
 #!/bin/bash
-# plans — select the Claude plan you're on; it shows as a badge in the
-# statusline footer (the flex). Run as `! plans` inside Claude Code, or
-# `plans` in a regular terminal.
+# plans — select the Claude plan badge shown in the statusline footer.
+# PURELY AESTHETIC: it only changes the plan name displayed in the footer.
+# It does NOT touch the token budget, percentages, or anything else.
+# Run as `! plans` inside Claude Code, or `plans` in a regular terminal.
 #
 # Usage:
 #   plans               Show the menu (interactive in a TTY)
-#   plans 1|pro         Pro            (44k tokens / 5h)
-#   plans 2|5x|max5x    Max 5x         (88k tokens / 5h)
-#   plans 3|20x|max20x  Max 20x        (220k tokens / 5h)
-#   plans 4|team        Team           (44k tokens / 5h)
-#   plans 5|ent         Enterprise     (220k tokens / 5h)
-#   plans 0|auto        Clear override (auto-detect from API/keychain)
-#   plans "Name" [tok]  Custom plan name with optional token budget
+#   plans 1|pro         Pro
+#   plans 2|5x|max5x    Max 5x
+#   plans 3|20x|max20x  Max 20x
+#   plans 4|team        Team
+#   plans 5|ent         Enterprise
+#   plans 0|auto        Clear the badge override (auto-detect)
+#   plans "Anything"    Custom badge text
 
 GREEN='\033[32m'
 YEL='\033[33m'
@@ -30,25 +31,20 @@ if [ ! -e "$SETTINGS" ] || ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-# ~/.claude/settings.json is usually a symlink — write through to the real
+# ~/.claude/settings.json may be a symlink — write through to the real
 # file so we don't replace the link with a plain copy.
 REAL=$(readlink -f "$SETTINGS" 2>/dev/null || echo "$SETTINGS")
 
 apply() {
-  local name="$1" budget="$2" tmp="$REAL.tmp.$$"
+  local name="$1" tmp="$REAL.tmp.$$"
   if [ "$name" = "__auto__" ]; then
-    jq 'del(.statusLinePlanName, .statusLineTokenBudget)' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
-    printf "\n  ${GREEN}✓${R} Plan override cleared — footer auto-detects from API/keychain.\n\n"
+    jq 'del(.statusLinePlanName)' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
+    printf "\n  ${GREEN}✓${R} Plan badge cleared — footer auto-detects your plan.\n\n"
   else
-    if [ -n "$budget" ]; then
-      jq --arg n "$name" --argjson b "$budget" \
-        '. + {statusLinePlanName: $n, statusLineTokenBudget: $b}' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
-    else
-      jq --arg n "$name" '. + {statusLinePlanName: $n}' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
-    fi
-    printf "\n  ${GREEN}✓${R} Plan set to ${BL}${BOLD}%s${R}" "$name"
-    [ -n "$budget" ] && printf " ${DIM}(%sk tokens / 5h)${R}" "$((budget / 1000))"
-    printf "\n  ${DIM}Footer updates on the next status tick (~1s).${R}\n\n"
+    jq --arg n "$name" '. + {statusLinePlanName: $n}' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
+    printf "\n  ${GREEN}✓${R} Footer badge set to ${BL}${BOLD}%s${R}\n" "$name"
+    printf "  ${DIM}Aesthetic only — budget and usage numbers are untouched.${R}\n"
+    printf "  ${DIM}Footer updates on the next status tick (~1s).${R}\n\n"
   fi
   # Bust the usage cache so the footer reflects the change immediately.
   rm -f "${TMPDIR:-/tmp}/token-tracker-usage.json" 2>/dev/null
@@ -57,34 +53,35 @@ apply() {
 menu() {
   CURRENT=$(jq -r '.statusLinePlanName // empty' "$REAL" 2>/dev/null)
   printf "\n"
-  printf "${MAG}${BOLD}╔════════════════════════════════════════════════╗${R}\n"
-  printf "${MAG}${BOLD}║${R}   ${YEL}${BOLD}!  P L A N S${R}  ${DIM}— pick your plan, flex the footer${R} ${MAG}${BOLD}║${R}\n"
-  printf "${MAG}${BOLD}╚════════════════════════════════════════════════╝${R}\n"
-  [ -n "$CURRENT" ] && printf "  ${DIM}current:${R} ${BL}${BOLD}%s${R}\n" "$CURRENT"
+  printf "${MAG}${BOLD}╔══════════════════════════════════════════════════╗${R}\n"
+  printf "${MAG}${BOLD}║${R}   ${YEL}${BOLD}!  P L A N S${R}  ${DIM}— pick your plan, flex the footer${R}   ${MAG}${BOLD}║${R}\n"
+  printf "${MAG}${BOLD}╚══════════════════════════════════════════════════╝${R}\n"
+  [ -n "$CURRENT" ] && printf "  ${DIM}current badge:${R} ${BL}${BOLD}%s${R}\n" "$CURRENT"
   printf "\n"
-  printf "  ${GREEN}1${R}  Pro          ${DIM}44k tokens / 5h${R}\n"
-  printf "  ${GREEN}2${R}  Max 5x       ${DIM}88k tokens / 5h${R}\n"
-  printf "  ${GREEN}3${R}  Max 20x      ${DIM}220k tokens / 5h${R}\n"
-  printf "  ${GREEN}4${R}  Team         ${DIM}44k tokens / 5h${R}\n"
-  printf "  ${GREEN}5${R}  Enterprise   ${DIM}220k tokens / 5h${R}\n"
-  printf "  ${GREEN}0${R}  Auto         ${DIM}clear override, detect from API${R}\n"
+  printf "  ${GREEN}1${R}  Pro\n"
+  printf "  ${GREEN}2${R}  Max 5x\n"
+  printf "  ${GREEN}3${R}  Max 20x\n"
+  printf "  ${GREEN}4${R}  Team\n"
+  printf "  ${GREEN}5${R}  Enterprise\n"
+  printf "  ${GREEN}0${R}  Auto ${DIM}(clear badge, detect from account)${R}\n"
   printf "\n"
+  printf "  ${DIM}Aesthetic only — changes the footer badge, nothing else.${R}\n"
 }
 
 set_choice() {
   case "$(echo "$1" | tr '[:upper:]' '[:lower:]')" in
-    1|pro)            apply "Pro" 44000 ;;
-    2|5x|max5x|max-5x)    apply "Max 5x" 88000 ;;
-    3|20x|max20x|max-20x) apply "Max 20x" 220000 ;;
-    4|team)           apply "Team" 44000 ;;
-    5|ent|enterprise) apply "Enterprise" 220000 ;;
+    1|pro)                apply "Pro" ;;
+    2|5x|max5x|max-5x)    apply "Max 5x" ;;
+    3|20x|max20x|max-20x) apply "Max 20x" ;;
+    4|team)               apply "Team" ;;
+    5|ent|enterprise)     apply "Enterprise" ;;
     0|auto|clear|reset)   apply "__auto__" ;;
-    *)                apply "$1" "$2" ;;   # custom name [budget]
+    *)                    apply "$1" ;;   # custom badge text
   esac
 }
 
 if [ -n "$1" ]; then
-  set_choice "$1" "$2"
+  set_choice "$1"
 elif [ -t 0 ]; then
   menu
   printf "  ${BOLD}Pick a plan [0-5]:${R} "

@@ -31,7 +31,7 @@ Everything you need for an optimized Claude Code setup:
 - Context window auto-adjusts for 200k or 1M models
 - Effort level updates live when you use `/effort`
 - 5-hour token budget with progress bar, reset timer, and a **plan badge** (Pro / Max 5x / Max 20x / custom)
-- `! plans` opens the plan picker — your selection shows as a badge in the footer (the flex). An explicit selection always wins over auto-detection. Footer refreshes on the next status tick (~1s)
+- `! plans` opens the plan picker — your selection shows as a badge in the footer (the flex). **Purely aesthetic**: it only changes the badge text; the token budget, percentages, and everything else in the footer stay untouched. An explicit selection always wins over auto-detection. Footer refreshes on the next status tick (~1s)
 - `! plan` shows the current plan (read-only)
 - Caffeinate integration (prevents macOS sleep)
 
@@ -118,7 +118,7 @@ All installed to `~/.local/bin/` — runnable from any terminal, or with `! pref
 | `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
 | `claudecode-update` | Check / install settings-pack updates only |
 | `status` | Quick terminal health check |
-| `plans [choice]` | **Select your plan** — 1=Pro · 2=Max 5x · 3=Max 20x · 4=Team · 5=Enterprise · 0=Auto, or a custom name. Shows as a badge in the footer |
+| `plans [choice]` | **Select your plan badge** — 1=Pro · 2=Max 5x · 3=Max 20x · 4=Team · 5=Enterprise · 0=Auto, or custom text. Aesthetic only: changes the footer badge, nothing else |
 | `plan` | Display the current plan (read-only) |
 | `buddy` | Buddy system wrapper |
 | `slaughter` | Standalone slaughter shortcut |

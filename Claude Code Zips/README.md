@@ -52,7 +52,7 @@ Every new conversation:
 | Command | Description |
 |---------|-------------|
 | `! status` | Quick terminal status readout (model, plugins, commands, keep-awake) |
-| `! plans` | Select your plan (Pro / Max 5x / Max 20x / Team / Enterprise / custom) — shows as a footer badge |
+| `! plans` | Select your plan badge (Pro / Max 5x / Max 20x / Team / Enterprise / custom) — aesthetic only, changes the footer badge and nothing else |
 | `! plan` | Display the current plan (read-only) |
 | `! claudecode-update` | Check for and install updates from ClaudeCode-Better GitHub |
 
