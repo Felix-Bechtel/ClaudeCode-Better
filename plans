@@ -11,7 +11,6 @@
 #   plans 3|20x|max20x  Max 20x
 #   plans 4|team        Team
 #   plans 5|ent         Enterprise
-#   plans 0|auto        Clear the badge override (auto-detect)
 #   plans "Anything"    Custom badge text
 
 GREEN='\033[32m'
@@ -37,15 +36,10 @@ REAL=$(readlink -f "$SETTINGS" 2>/dev/null || echo "$SETTINGS")
 
 apply() {
   local name="$1" tmp="$REAL.tmp.$$"
-  if [ "$name" = "__auto__" ]; then
-    jq 'del(.statusLinePlanName)' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
-    printf "\n  ${GREEN}✓${R} Plan badge cleared — footer auto-detects your plan.\n\n"
-  else
-    jq --arg n "$name" '. + {statusLinePlanName: $n}' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
-    printf "\n  ${GREEN}✓${R} Footer badge set to ${BL}${BOLD}%s${R}\n" "$name"
-    printf "  ${DIM}Aesthetic only — budget and usage numbers are untouched.${R}\n"
-    printf "  ${DIM}Footer updates on the next status tick (~1s).${R}\n\n"
-  fi
+  jq --arg n "$name" '. + {statusLinePlanName: $n}' "$REAL" > "$tmp" && mv "$tmp" "$REAL"
+  printf "\n  ${GREEN}✓${R} Footer badge set to ${BL}${BOLD}%s${R}\n" "$name"
+  printf "  ${DIM}Aesthetic only — budget and usage numbers are untouched.${R}\n"
+  printf "  ${DIM}Footer updates on the next status tick (~1s).${R}\n\n"
   # Bust the usage cache so the footer reflects the change immediately.
   rm -f "${TMPDIR:-/tmp}/token-tracker-usage.json" 2>/dev/null
 }
@@ -63,7 +57,6 @@ menu() {
   printf "  ${GREEN}3${R}  Max 20x\n"
   printf "  ${GREEN}4${R}  Team\n"
   printf "  ${GREEN}5${R}  Enterprise\n"
-  printf "  ${GREEN}0${R}  Auto ${DIM}(clear badge, detect from account)${R}\n"
   printf "\n"
   printf "  ${DIM}Aesthetic only — changes the footer badge, nothing else.${R}\n"
 }
@@ -75,7 +68,6 @@ set_choice() {
     3|20x|max20x|max-20x) apply "Max 20x" ;;
     4|team)               apply "Team" ;;
     5|ent|enterprise)     apply "Enterprise" ;;
-    0|auto|clear|reset)   apply "__auto__" ;;
     *)                    apply "$1" ;;   # custom badge text
   esac
 }
@@ -84,7 +76,7 @@ if [ -n "$1" ]; then
   set_choice "$1"
 elif [ -t 0 ]; then
   menu
-  printf "  ${BOLD}Pick a plan [0-5]:${R} "
+  printf "  ${BOLD}Pick a plan [1-5]:${R} "
   read -r choice
   [ -n "$choice" ] && set_choice "$choice" || printf "  ${DIM}no change${R}\n"
 else

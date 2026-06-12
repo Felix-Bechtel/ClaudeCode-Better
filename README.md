@@ -118,7 +118,7 @@ All installed to `~/.local/bin/` — runnable from any terminal, or with `! pref
 | `commands` | Print the full ClaudeCode-Better command list (shell + slash) |
 | `claudecode-update` | Check / install settings-pack updates only |
 | `status` | Quick terminal health check |
-| `plans [choice]` | **Select your plan badge** — 1=Pro · 2=Max 5x · 3=Max 20x · 4=Team · 5=Enterprise · 0=Auto, or custom text. Aesthetic only: changes the footer badge, nothing else |
+| `plans [choice]` | **Select your plan badge** — 1=Pro · 2=Max 5x · 3=Max 20x · 4=Team · 5=Enterprise, or custom text. Aesthetic only: changes the footer badge, nothing else |
 | `plan` | Display the current plan (read-only) |
 | `buddy` | Buddy system wrapper |
 | `slaughter` | Standalone slaughter shortcut |
