@@ -134,6 +134,14 @@ if [ -d "$DTMP/templates/memory" ]; then
   cp -R "$DTMP/templates" "$HOME/.claude/templates" 2>/dev/null || true
 fi
 
+# Seed the global project registry (~/.claude/PROJECTS.md) — the one file that
+# knows every project and where its tests live. Never overwrite an existing one.
+if [ -f "$DTMP/templates/PROJECTS.md.template" ] && [ ! -f "$HOME/.claude/PROJECTS.md" ]; then
+  mkdir -p "$HOME/.claude"
+  cp "$DTMP/templates/PROJECTS.md.template" "$HOME/.claude/PROJECTS.md"
+  printf "  ${DIM}seeded global project registry at %s${R}\n" "$HOME/.claude/PROJECTS.md"
+fi
+
 rm -rf "$DTMP"
 printf "  ${GREEN}✓${R} DLC overlay installed (settings, commands, hooks, bin)\n\n"
 

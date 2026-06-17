@@ -25,7 +25,7 @@ Everything you need for an optimized Claude Code setup:
 | `CLAUDE.md` | Session start flow, global instructions, memory behavior |
 | `Info.md` | Full setup guide |
 | `commands/*.md` | Slash commands (see below) |
-| `templates/` | Starter "empty setup" files — memory scaffold + project `CLAUDE.md` template (see [Memory scaffold](#memory-scaffold)) |
+| `templates/` | Starter "empty setup" files — memory scaffold, project registry, test checklist + project `CLAUDE.md` template (see [Memory scaffold](#memory-scaffold) and [Project registry & test discipline](#project-registry--test-discipline)) |
 
 **Statusline Features:**
 - Auto-detects subscription tier from macOS Keychain — no hardcoded budget (Pro 44k / Max 5x 88k / Max 20x 220k)
@@ -162,3 +162,13 @@ A fresh setup also comes with the **memory system ready to go**. On install, the
 - Stash the templates at `~/.claude/templates/` for reuse, including a blank per-project `CLAUDE.md.template`.
 
 Nothing is overwritten — if you already have a `MEMORY.md`, your memories are left untouched. This means a brand-new machine can start saving memories immediately instead of starting from nothing.
+
+## Project registry & test discipline
+
+The pack also installs a **global project registry** and a **test-after-every-update** convention so changes can't silently introduce bugs:
+
+- **`~/.claude/PROJECTS.md`** — one global file that knows *every* project: its path, what it is, and where its tests live. Claude reads it at the start of project work and adds a row whenever a new project is created. Seeded on install (never overwrites an existing one).
+- **`TESTS.md` per project** — a checklist of what to verify (unit tests, integration tests, manual behavior checks). Copy `~/.claude/templates/TESTS.md.template` into a project root. When you add a feature, add a line.
+- **The rule (in the global `CLAUDE.md`):** after *every* update to a project, Claude runs that project's full `TESTS.md` checklist top to bottom and confirms each item still passes **before** calling the work done — the regression gate. This pairs with the standing rule that every project gets unit **and** integration tests.
+
+This repo dogfoods it: see [`TESTS.md`](TESTS.md) for the pack's own checklist.
