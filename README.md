@@ -25,6 +25,7 @@ Everything you need for an optimized Claude Code setup:
 | `CLAUDE.md` | Session start flow, global instructions, memory behavior |
 | `Info.md` | Full setup guide |
 | `commands/*.md` | Slash commands (see below) |
+| `templates/` | Starter "empty setup" files — memory scaffold + project `CLAUDE.md` template (see [Memory scaffold](#memory-scaffold)) |
 
 **Statusline Features:**
 - Auto-detects subscription tier from macOS Keychain — no hardcoded budget (Pro 44k / Max 5x 88k / Max 20x 220k)
@@ -151,3 +152,13 @@ Requires `gh` CLI authenticated with repo access.
 `install.sh` force-installs the **buddy-system base layer first** (the actual buddy code Claude Code expects), then layers the **ClaudeCode DLC** (settings, statusline, commands, hooks) on top — so any DLC update works immediately on a fresh download. It is idempotent, and your existing `~/.claude/buddy-collection.json` is preserved.
 
 After install, `claudecode-update` runs every session to keep both layers in sync with this repo.
+
+## Memory scaffold
+
+A fresh setup also comes with the **memory system ready to go**. On install, the bundled `templates/` are used to:
+
+- Create `~/.claude/projects/<your-home-project>/memory/` and seed an **empty `MEMORY.md` index** there (Claude's persistent memory lives in per-project `memory/` folders).
+- Drop a sample memory file showing the frontmatter format.
+- Stash the templates at `~/.claude/templates/` for reuse, including a blank per-project `CLAUDE.md.template`.
+
+Nothing is overwritten — if you already have a `MEMORY.md`, your memories are left untouched. This means a brand-new machine can start saving memories immediately instead of starting from nothing.

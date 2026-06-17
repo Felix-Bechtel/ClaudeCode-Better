@@ -118,6 +118,22 @@ if [ -d "$DTMP/bin" ]; then
   chmod +x "$HOME/.claude/bin/"* 2>/dev/null || true
 fi
 
+# templates → seed an empty memory scaffold so the memory system works out of the
+# box. Claude Code stores per-project memory under
+# ~/.claude/projects/<encoded-cwd>/memory/. We seed the home-directory project
+# (the most common default). Existing memory is never overwritten.
+if [ -d "$DTMP/templates/memory" ]; then
+  HOME_PROJ=$(printf '%s' "$HOME" | sed 's#/#-#g')   # /Users/you -> -Users-you
+  MEM_DIR="$HOME/.claude/projects/$HOME_PROJ/memory"
+  mkdir -p "$MEM_DIR"
+  if [ ! -f "$MEM_DIR/MEMORY.md" ] && [ -f "$DTMP/templates/memory/MEMORY.md" ]; then
+    cp "$DTMP/templates/memory/MEMORY.md" "$MEM_DIR/MEMORY.md"
+    printf "  ${DIM}seeded empty memory index at %s${R}\n" "$MEM_DIR/MEMORY.md"
+  fi
+  # Stash the templates themselves for reference / reuse.
+  cp -R "$DTMP/templates" "$HOME/.claude/templates" 2>/dev/null || true
+fi
+
 rm -rf "$DTMP"
 printf "  ${GREEN}✓${R} DLC overlay installed (settings, commands, hooks, bin)\n\n"
 
