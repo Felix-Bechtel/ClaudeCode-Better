@@ -1,13 +1,15 @@
 # ClaudeCode-Better
 
-Pre-configured settings packs for Claude Code. Private repo — contact Felix-Bechtel@users.noreply.github.com for access.
+Pre-configured settings packs for Claude Code.
 
 ## Access
 
-This repo is **private**. To get access:
-1. Email **Felix-Bechtel@users.noreply.github.com** with your GitHub username
-2. Once added as a collaborator, `claudecode-update` will work automatically
+Public repo. To use it:
+1. Clone or download this repo
+2. `claudecode-update` will keep it in sync automatically
 3. You need `gh` CLI installed and authenticated (`gh auth login`)
+
+Questions or issues? Open a GitHub issue on this repo.
 
 ---
 
@@ -144,10 +146,9 @@ Requires `gh` CLI authenticated with repo access.
 
 ## Setup
 
-1. Get access (email Felix-Bechtel@users.noreply.github.com)
-2. Clone the repo: `gh repo clone Felix-Bechtel/ClaudeCode-Better && cd ClaudeCode-Better`
-3. Run the one-shot installer: `bash install.sh`
-4. Restart Claude Code
+1. Clone the repo: `gh repo clone Felix-Bechtel/ClaudeCode-Better && cd ClaudeCode-Better`
+2. Run the one-shot installer: `bash install.sh`
+3. Restart Claude Code
 
 `install.sh` force-installs the **buddy-system base layer first** (the actual buddy code Claude Code expects), then layers the **ClaudeCode DLC** (settings, statusline, commands, hooks) on top — so any DLC update works immediately on a fresh download. It is idempotent, and your existing `~/.claude/buddy-collection.json` is preserved.
 
